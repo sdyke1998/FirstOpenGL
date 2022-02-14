@@ -132,8 +132,6 @@ int main() {
 	//Setup for container2 (displayed at top left of screen)
 	glBindVertexArray(VAOs[1]);
 
-	
-
 	glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
 
@@ -193,10 +191,7 @@ int main() {
 		ourShader2.setInt("ourTex", 0);
 		ourShader2.setInt("nexTex", 1);
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, tex);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, tex1);
+		
 
 		glBindVertexArray(VAOs[1]);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
