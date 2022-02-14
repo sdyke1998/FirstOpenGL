@@ -79,7 +79,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <LibraryPath>C:\glfw-3.3.6\build\src\Debug;$(LibraryPath)</LibraryPath>
-    <IncludePath>C:\glfw-3.3.6\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\Scott\source\repos\FirstOpenGL;C:\glfw-3.3.6\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -144,6 +144,10 @@
   <ItemGroup>
     <ClCompile Include="glad.c" />
     <ClCompile Include="Source.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="shader.h" />
+    <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
