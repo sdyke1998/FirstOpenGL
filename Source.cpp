@@ -132,20 +132,7 @@ int main() {
 	//Setup for container2 (displayed at top left of screen)
 	glBindVertexArray(VAOs[1]);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, tex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, tex1);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
+	
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
@@ -163,11 +150,11 @@ int main() {
 	glEnableVertexAttribArray(2);
 
 	glm::mat4 trans2 = glm::mat4(1.0f);
-	trans2 = glm::translate(trans2, glm::vec3(0.0f, 0.0f, 0.0f));
+	//trans2 = glm::translate(trans2, glm::vec3(0.0f, 0.0f, 0.0f));
 	unsigned int trans2_loc = glGetUniformLocation(ourShader2.ID, "transMat");
 	glUniformMatrix4fv(trans2_loc, 1, GL_FALSE, glm::value_ptr(trans2));
 
-	float glfwTime; //Used for time dependent transformations in shader
+	float glfwTime; //Used for time dependent transformations in shader(s)
 
 	//Render loop
 	while (!glfwWindowShouldClose(window)) {
@@ -202,6 +189,9 @@ int main() {
 		//Drawing container2
 		ourShader2.use();
 		ourShader2.setFloat("time", glfwTime);
+		ourShader2.setFloat("ratio", ratio);
+		ourShader2.setInt("ourTex", 0);
+		ourShader2.setInt("nexTex", 1);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, tex);
