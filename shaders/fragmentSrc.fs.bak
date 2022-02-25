@@ -1,9 +1,8 @@
 #version 460 core
 
-in vec3 col;
 in vec2 texCoord;
 
-out vec4 FragColor;
+out vec4 nigger;
 
 uniform sampler2D ourTex;
 uniform sampler2D nexTex;
@@ -11,6 +10,5 @@ uniform float ratio;
 
 void main(){
 
-//FragColor = mix(texture(ourTex, vec2(-texCoord.s, texCoord.t)), texture(nexTex, texCoord), ratio);
-FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+nigger = mix(texture(ourTex, vec2(-texCoord.s, texCoord.t)), texture(nexTex, texCoord), ratio);
 }

@@ -2,11 +2,12 @@
 #define SHADER_H
 
 #include <glad/glad.h>
-
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 class Shader {
 
@@ -19,6 +20,7 @@ public:
 	void setBool(const std::string &name, bool value) const;
 	void setInt(const std::string &name, int value) const;
 	void setFloat(const std::string &name, float value) const;
+	void setMat4(const std::string& name, glm::mat4 matrix) const;
 };
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath) {
@@ -116,5 +118,10 @@ void Shader::setInt(const std::string& name, int value) const
 void Shader::setFloat(const std::string& name, float value) const
 {
 	glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+}
+void Shader::setMat4(const std::string& name, glm::mat4 matrix) const
+{
+	glUniformMatrix4fv(
+		glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(matrix));
 }
 #endif
