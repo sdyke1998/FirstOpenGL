@@ -11,27 +11,26 @@
 
 const int w = 1000;
 const int h = 1000;
-const float camSpeed_coeff = 2.5f;
 
 float ratio = 0.5f;
 float deltaTime;
-float fov = 45.0f;
 float pitch;
 float yaw = -90.0f;
 
 float lastX = ((float)w) / 2.0f;
 float lastY = ((float)h) / 2.0f;
-
 bool firstMouse = true;
 
 glm::vec3 camPos;
 glm::vec3 camFront;
-glm::vec3 camUp;
-glm::vec3 camTarget;
+glm::vec3 worldUp;
+
+Camera theCamera;
+Camera_Movement currentDirection;
 
 void processInput(GLFWwindow* window);
-//void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-//void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 
@@ -39,6 +38,10 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 }
 
 int main() {
+
+	theCamera.MouseXSensitivity = 1.0f;
+	theCamera.MouseYSensitivity = 1.0f;
+	theCamera.MovementSpeed = 2.5f;
 
 	//GLFW & GLAD setup
 	glfwInit();
@@ -68,19 +71,19 @@ int main() {
 	//Camera setup
 	camPos = glm::vec3(0.0f, 0.0f, 3.0f);
 	camFront = glm::vec3(0.0f, 0.0f, -1.0f);
-	camUp = glm::vec3(0.0f, 1.0f, 0.0f);
+	worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-	camTarget = camPos + camFront;
-
-	Camera theCamera();
+	theCamera.WorldUp = worldUp;
+	theCamera.Front = camFront;
 
 	//Graphics setup
 	Shader ourShader("shaders/vertexSrc.vs", "shaders/fragmentSrc.fs");
+	Shader lightSourceShader("shaders/lightVS.vs", "shaders/lightFS.fs");
 
 	int texWidth, texHeight, nrChannels, texW1, texH1, nrChr1;
 	stbi_set_flip_vertically_on_load(true);
-	unsigned char* data = stbi_load("awesomeface.png", &texWidth, &texHeight, &nrChannels, 0);
-	unsigned char* data1 = stbi_load("brickwall.jpg", &texW1, &texH1, &nrChr1, 0);
+	unsigned char *data = stbi_load("awesomeface.png", &texWidth, &texHeight, &nrChannels, 0);
+	unsigned char *data1 = stbi_load("brickwall.jpg", &texW1, &texH1, &nrChr1, 0);
 	
 	float vertices[] = {
 	//     Vertex(3)      Tex(2)
@@ -205,6 +208,10 @@ int main() {
 		glm::vec3(-1.3f, 1.0f, -1.5f)
 	};
 
+	//theCamera.Position = camPos;
+	//theCamera.Front = camFront;
+	//theCamera.WorldUp = WorldUp;
+
 	float glfwTime; //Used for time dependent transformations in shader(s)
 	const float radius = 10.0f;
 
@@ -224,12 +231,12 @@ int main() {
 
 		glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 
-		//Camera movement
-		camTarget = camPos + camFront;
-		view = glm::lookAt(camPos, camTarget, camUp);
+		//Camera setup
+		
+		
 		//Camera fov
 		proj = glm::perspective(
-			glm::radians(fov), ((float)w) / ((float)h), 0.1f, 100.0f
+			glm::radians(theCamera.Zoom), ((float)w) / ((float)h), 0.1f, 100.0f
 		);
 
 		//Drawing container1
@@ -244,9 +251,8 @@ int main() {
 		unsigned int view_loc = glGetUniformLocation(ourShader.ID, "view");
 		unsigned int proj_loc = glGetUniformLocation(ourShader.ID, "proj");
 
-		view = (*theCamera).GetViewMatrix();
+		view = theCamera.GetViewMatrix();
 
-		glUniformMatrix4fv(model_loc, 1, GL_FALSE, glm::value_ptr(model));
 		glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(proj));
 		
@@ -255,9 +261,8 @@ int main() {
 		glBindTexture(GL_TEXTURE_2D, tex);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, tex1);
-
 		
-
+		//Rendering all cubes
 		glBindVertexArray(VAOs[0]);
 		for (unsigned int i = 0; i < 10; i++) {
 			float angle = 20.0f * ((float)i);
@@ -283,7 +288,7 @@ int main() {
 			ourShader.setMat4("model", model);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
-		
+
 		//Events and buffer swap
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -299,57 +304,53 @@ int main() {
 
 void processInput(GLFWwindow* window) {
 
-	float camSpeed = camSpeed_coeff * deltaTime;
-
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) ratio += 0.025f;
 	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) ratio -= 0.025f;
-	
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) 
-		camPos += camSpeed * camFront;
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camPos -= camSpeed * camFront;
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camPos -= glm::normalize(glm::cross(camFront, camUp)) * camSpeed;
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camPos += glm::normalize(glm::cross(camFront, camUp)) * camSpeed;
+
+	else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		currentDirection = FORWARD;
+		theCamera.ProcessKeyboard(currentDirection, deltaTime);
+	}
+		
+	else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		currentDirection = BACKWARD;
+		theCamera.ProcessKeyboard(currentDirection, deltaTime);
+	}
+		
+	else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		currentDirection = LEFT;
+		theCamera.ProcessKeyboard(currentDirection, deltaTime);
+	}
+		
+	else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		currentDirection = RIGHT;
+		theCamera.ProcessKeyboard(currentDirection, deltaTime);
+	}
+	else {
+		theCamera.ProcessKeyboard(currentDirection, 0.0f);
+	}
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 
-	if (firstMouse) {
+	if (firstMouse)
+	{
 		lastX = xpos;
 		lastY = ypos;
 		firstMouse = false;
 	}
-
-	float xOffset = xpos - lastX;
-	float yOffset = lastY - ypos;
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos;
 	lastX = xpos;
 	lastY = ypos;
 
-	const float xSensitivity = 0.075f;
-	const float ySensitivity = 0.25f;
-	xOffset *= xSensitivity;
-	yOffset *= ySensitivity;
-
-	yaw += xOffset;
-	pitch += yOffset;
-
-	if (pitch > 89.0f) pitch = 89.0f;
-	if (pitch < -89.0f) pitch = -89.0f;
-	
-	glm::vec3 direction;
-	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	direction.y = sin(glm::radians(pitch));
-	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-	camFront = glm::normalize(direction);
+	theCamera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-	fov -= (float)yoffset;
-	if (fov < 1.0f) fov = 1.0f;
-	if (fov > 45.0f) fov = 45.0f;
+	
+	theCamera.ProcessMouseScroll(yoffset);
 }
