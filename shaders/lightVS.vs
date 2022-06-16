@@ -1,12 +1,10 @@
-#version 460 core
+#version 330 core
 
 layout (location = 0) in vec3 aPos;
 
-out vec2 texCoord;
-
 uniform mat4 model;
 uniform mat4 view;
-uniform mat4 proj; //Short for projection
+uniform mat4 proj;
 
 void main(){
 

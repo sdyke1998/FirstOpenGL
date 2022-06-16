@@ -1,14 +1,10 @@
-#version 460 core
-
-in vec2 texCoord;
+#version 330 core
 
 out vec4 FragColor;
 
-uniform sampler2D ourTex;
-uniform sampler2D nexTex;
-uniform float ratio;
+uniform vec3 lightColor;
 
 void main(){
 
-FragColor = mix(texture(ourTex, vec2(-texCoord.s, texCoord.t)), texture(nexTex, texCoord), ratio);
+FragColor = vec4(lightColor, 1.0);
 }
