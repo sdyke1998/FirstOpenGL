@@ -1,5 +1,4 @@
 ﻿#define STB_IMAGE_IMPLEMENTATION
-#define I4 glm::mat4(1.0f)
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -25,6 +24,7 @@ const int h = 1000;
 const float PI = 3.1416f;
 const float lightStrength = 0.85f;
 const glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
+const glm::mat4 I4(1.0f);
 
 //Lighting attenuation constants
 const float constant = 1.0f;
@@ -338,8 +338,8 @@ int main() {
 		ourShader.setFloat("spotLight.linear", linear);
 		ourShader.setFloat("spotLight.quadratic", quadratic);
 		ourShader.setVec3("spotLight.position", theCamera.Position);
-		ourShader.setFloat("spotLight.cosPhi", glm::cos(glm::radians(7.5f)));
-		ourShader.setFloat("spotLight.cosGamma", glm::cos(glm::radians(.5f)));
+		ourShader.setFloat("spotLight.cosPhi", glm::cos(glm::radians(5.0f)));
+		ourShader.setFloat("spotLight.cosGamma", glm::cos(glm::radians(12.5f)));
 		ourShader.setVec3("spotLight.spotDir", theCamera.Front);
 		ourShader.setVec3("spotLight.ambient", glm::vec3(0.2f));
 		ourShader.setVec3("spotLight.diffuse", glm::vec3(1.0f));
