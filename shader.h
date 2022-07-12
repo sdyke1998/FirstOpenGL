@@ -8,6 +8,13 @@
 #include <iostream>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <Light.h>
+
+#define WHITE glm::vec3(1.0f, 1.0f, 1.0f)
+#define RED glm::vec3(1.0f, 0.0f, 0.0f)
+#define BLUE glm::vec3(0.0f, 0.0f, 1.0f)
+#define GREEN glm::vec3(0.0f, 1.0f, 0.0f)
+#define BLACK glm::vec3(0.0f, 0.0f, 0.0f)
 
 class Shader {
 
@@ -23,6 +30,11 @@ public:
 	void setMat4(const std::string& name, glm::mat4 matrix) const;
 	void setVec3(const std::string& name, glm::vec3 vector) const;
 	void setVec3(const std::string& name, float v1, float v2, float v3) const;
+
+	void setDirLight(DirLight sun);
+	void setPointLight(PointLight light);
+	void setSpotLight(SpotLight light);
+	void useLight(Light light);
 };
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath) {
@@ -136,5 +148,45 @@ void Shader::setVec3(const std::string& name, float v1, float v2, float v3) cons
 	glUniform3f(
 		glGetUniformLocation(ID, name.c_str()), v1, v2, v3
 	);
+}
+void Shader::setDirLight(DirLight sun) {
+
+	setVec3("sun.direction", sun.getDirection());
+	setVec3("sun.ambient", sun.getAmbient());
+	setVec3("sun.diffuse", sun.getDiffuse());
+	setVec3("sun.specular", sun.getSpecular());
+}
+
+void Shader::setPointLight(PointLight light) {
+
+	glm::vec3 constants = light.getConstants();
+
+	setFloat("pointLight.constant", constants[0]);
+	setFloat("pointLight.linear", constants[1]);
+	setFloat("pointLight.quadratic", constants[2]);
+	setVec3("pointLight.position", light.getPosition());
+	setVec3("pointLight.ambient", light.getAmbient());
+	setVec3("pointLight.diffuse", light.getDiffuse());
+	setVec3("pointLight.specular", light.getSpecular());
+}
+void Shader::setSpotLight(SpotLight light) {
+
+	glm::vec3 constants = light.getConstants();
+
+	setFloat("spotLight.constant", constants[0]);
+	setFloat("spotLight.linear", constants[1]);
+	setFloat("spotLight.quadratic", constants[2]);
+	setVec3("spotLight.position", light.getPosition());
+	setFloat("spotLight.cosPhi", light.getInnerAngle());
+	setFloat("spotLight.cosGamma", light.getOuterAngle());
+	setVec3("spotLight.direction", light.getDirection());
+	setVec3("spotLight.ambient", light.getAmbient());
+	setVec3("spotLight.diffuse", light.getDiffuse());
+	setVec3("spotLight.specular", light.getSpecular());
+}
+
+void Shader::useLight(Light light) {
+
+	Shader::setVec3("lightColor", light.getColour());
 }
 #endif

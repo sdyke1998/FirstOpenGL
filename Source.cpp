@@ -10,6 +10,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <Model.h>
+#include <Light.h>
 
 float deltaTime;
 float pitch;
@@ -43,6 +44,7 @@ void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void right_click_callback(GLFWwindow* window, int button, int action, int mods);
+
 void printVec3(glm::vec3 vect);
 void printFloat(float num);
 
@@ -96,11 +98,30 @@ int main() {
 	Shader lightSourceShader("shaders/lightVS.vs", "shaders/lightFS.fs");
 	Shader pointLightShader("shaders/lightVS.vs", "shaders/lightFS.fs");
 
+	DirLight sun(lightPos, camFront);
+	PointLight blueCube(glm::vec3(0.0f), 20.0f);
+	SpotLight flashLight(theCamera.Position, glm::radians(15.0f), glm::radians(5.0f), 10.0f);
+
+	/*
+	blueCube.setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+	blueCube.setColour();
+	blueCube.setAmbient();
+	blueCube.setDiffuse();
+	blueCube.setSpecular();
+	blueCube.setBrightness();
+	*/
+
+	Shader sunShader("shaders/lightVS.vs", "shaders/lightFS.fs");
+	Shader blueCubeShader("shaders/lightVS.vs", "shaders/lightFS.fs");
+
+	sun.initShader(sunShader);
+
 	int texWidth, texHeight, nrChannels, texW1, texH1, nrChr1;
 	stbi_set_flip_vertically_on_load(true);
 	unsigned char *data = stbi_load("brickSpec.jpg", &texWidth, &texHeight, &nrChannels, 0);
 	unsigned char *data1 = stbi_load("brickwall.jpg", &texW1, &texH1, &nrChr1, 0);
 
+	const unsigned int VA_LEN = 8;
 	float vertices[] = {
 	//     Vertex(3)      Tex(2)         Normals(3)
 	-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f,
@@ -145,12 +166,17 @@ int main() {
 	-0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 	-0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f
 	};
-	const unsigned int VA_LEN = 8;
 
+	//vertices2[] is an array containing only the vertices in vertices[], without texture coordinates or normals
 	float vertices2[108];
-	for (int i = 0; i < 180; i += VA_LEN) {
-		for (int j = i/VA_LEN; j < i/VA_LEN + 3; j++) {
-			vertices2[j] = vertices[j];
+
+	for (int i = 1; i <= 6; i++) {
+		for (int j = 1; j <= 6; j++) {
+			for (int k = 1; k <= 3; k++) {
+
+				int index = i * j * k - 1;
+				vertices2[index] = vertices[index];
+			}
 		}
 	}
 
@@ -291,11 +317,12 @@ int main() {
 		//Drawing light cube
 		//glBindVertexArray(VAOs[1]);
 		model = glm::translate(I4, lightPos);
-		lightSourceShader.use();
-		lightSourceShader.setMat4("model", model);
-		lightSourceShader.setMat4("view", view);
-		lightSourceShader.setMat4("proj", proj);
-		lightSourceShader.setVec3("lightColor", lightColor);
+
+		sun.useShader();
+		sun.setModelMat(model);
+		sun.setViewMat(view);
+		sun.setProjMat(proj);
+		sun.setColour(lightColor);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		//Drawing point light cube
@@ -339,7 +366,7 @@ int main() {
 		ourShader.setFloat("spotLight.quadratic", quadratic);
 		ourShader.setVec3("spotLight.position", theCamera.Position);
 		ourShader.setFloat("spotLight.cosPhi", glm::cos(glm::radians(5.0f)));
-		ourShader.setFloat("spotLight.cosGamma", glm::cos(glm::radians(12.5f)));
+		ourShader.setFloat("spotLight.cosGamma", glm::cos(glm::radians(7.5f)));
 		ourShader.setVec3("spotLight.spotDir", theCamera.Front);
 		ourShader.setVec3("spotLight.ambient", glm::vec3(0.2f));
 		ourShader.setVec3("spotLight.diffuse", glm::vec3(1.0f));
@@ -470,6 +497,5 @@ void printVec3(glm::vec3 vect) {
 	std::cout << "(" << vect.x << ", " << vect.y << ", " << vect.z << ")" << std::endl;
 }
 void printFloat(float num) {
-
 	std::cout << num << std::endl;
 }

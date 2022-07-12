@@ -123,7 +123,7 @@ vec3 calcSpotLight(SpotLight light, vec3 normal, vec3 viewDir, vec3 fragPos){
 	vec3 lightDir = normalize(light.position - fragPos);
 	
 	float cosTheta = dot(lightDir, normalize(-light.spotDir));
-	if(cosTheta > light.cosPhi){
+	if(cosTheta > light.cosGamma){
 		
 		float diff = max(dot(norm, lightDir), 0.0);
 		vec3 diffuse = (diff * material.Diffuse) * light.diffuse;
@@ -136,13 +136,10 @@ vec3 calcSpotLight(SpotLight light, vec3 normal, vec3 viewDir, vec3 fragPos){
 		float epsilon = light.cosPhi - light.cosGamma;
 		float intensity = clamp((cosTheta - light.cosGamma) / epsilon, 0.0, 1.0);
 		
-		vec3 col = vec3(1.0, 1.0, 1.0);
-		if(intensity = 1.0) col = vec3(1.0, 0.0, 0.0);
-		
 		diffuse *= intensity;
 		specular *= intensity;
 		
-		return attenuation * (light.ambient + diffuse + specular) * col;
+		return attenuation * (light.ambient + diffuse + specular);
 
 	}
 	else return (attenuation * light.ambient);
